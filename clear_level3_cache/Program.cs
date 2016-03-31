@@ -17,8 +17,8 @@ namespace API_Sample
         {
             Console.WriteLine("Executing API Test");
 
-           new CacheInvalidator(new ConsoleLogger(), "288519499", "9TJtJkxW66jXGQS2zS4s", "csanchez@ipcoop.com")
-                .InvalidateCache("sadminmsc.ipcoop.com", "stg.mysubwaycareer.com");
+            new CacheInvalidator(new ConsoleLogger(), "288519499", "9TJtJkxW66jXGQS2zS4s", "csanchez@ipcoop.com")
+                 .InvalidateCache("sadminmsc.ipcoop.com", "stg.mysubwaycareer.com");
 
             Console.Write("Press any key to continue . . . ");
             Console.ReadKey(true);
@@ -47,7 +47,7 @@ namespace API_Sample
         private readonly string notificationEmail;
 
         private const string API_SERVER = "ws.level3.com";
-        private readonly string sourceUri = $"https://{API_SERVER}";
+        private readonly string sourceUri = "https://" + API_SERVER;
         private const int TIMEOUT = 60 * 1000;
 
         public CacheInvalidator(ILogger logger, string apiKey, string apiSecret, string notificationEmail)
@@ -60,19 +60,19 @@ namespace API_Sample
 
         public void InvalidateCache(params string[] websiteUrls)
         {
-            logger.Log($"InvalidateCache Key={apiKey}, Secret={apiSecret}, Notification={notificationEmail}");
+            logger.Log(string.Format("InvalidateCache Key={0}, Secret={1}, Notification={2}", apiKey, apiSecret, notificationEmail));
 
             var groupId = GetAccessGroupId();
-            logger.Log($"AccessGroupId={groupId}");
+            logger.Log("AccessGroupId=" + groupId);
             if (string.IsNullOrEmpty(groupId)) throw new InvalidOperationException("Error Getting GroupId");
 
             foreach (var url in websiteUrls)
             {
-                logger.Log($"Invalidating Url={url}");
+                logger.Log("Invalidating Url=" + url);
             }
 
             var invalidationResult = InvalidateProperties(groupId, websiteUrls);
-            logger.Log($"InvalidationResult={invalidationResult}");
+            logger.Log("InvalidationResult=" + invalidationResult);
             if (!invalidationResult) throw new InvalidOperationException("Invalidation Failed");
         }
 
@@ -117,7 +117,7 @@ namespace API_Sample
         private static IEnumerable<string> BuildBodyDataInternal(IEnumerable<string> urls)
         {
             yield return "<properties>";
-            var allProperties = urls.Select(u => $"<property><name>{u}</name><paths><path>/*</path></paths></property>");
+            var allProperties = urls.Select(u => string.Format("<property><name>{0}</name><paths><path>/*</path></paths></property>", u));
             yield return string.Join(string.Empty, allProperties);
             yield return "</properties>";
         }
@@ -133,7 +133,7 @@ namespace API_Sample
 
         private HttpWebRequest CreateRequest(string apiPath, string method = "GET")
         {
-            var parameters = $"?notification={notificationEmail}";
+            var parameters = "?notification=" + notificationEmail;
             var fullHttpRequestUri = sourceUri + apiPath + parameters;
 
             var request = (HttpWebRequest)WebRequest.Create(fullHttpRequestUri);
