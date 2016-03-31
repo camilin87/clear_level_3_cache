@@ -168,8 +168,9 @@ namespace API_Sample
         private readonly string apiSecret;
         private readonly string notificationEmail;
 
-        private readonly string SourceUri = "https://ws.level3.com";
-        private readonly int Timeout = 60 * 1000;
+        private const string ApiServer = "ws.level3.com";
+        private readonly string SourceUri = $"https://{ApiServer}";
+        private const int Timeout = 60 * 1000;
 
         public CacheInvalidator(ILogger logger, string apiKey, string apiSecret, string notificationEmail)
         {
@@ -196,17 +197,8 @@ namespace API_Sample
         {
             var apiPath = "/key/v1.0";
             var request = CreateRequest(apiPath);
-            
             var dateStr = GetDateStr();
-            var contentType = "text/xml";
-            var auth = GetAuthHeaderValue(dateStr, apiPath, "GET");
-
-            Type type = request.Headers.GetType();
-            MethodInfo mi = type.GetMethod("AddWithoutValidate", BindingFlags.Instance | BindingFlags.NonPublic);
-            mi.Invoke(request.Headers, new object[] { "Host", "ws.level3.com" });
-            mi.Invoke(request.Headers, new object[] { "Authorization", auth });
-            mi.Invoke(request.Headers, new object[] { "Date", dateStr });
-            mi.Invoke(request.Headers, new object[] { "Content-Type", contentType });
+            AddMandatoryHeaders(request, dateStr, apiPath, "GET");
 
             var response = (HttpWebResponse)request.GetResponse();
             var readStream = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
@@ -214,6 +206,15 @@ namespace API_Sample
 
             var matchCollection = Regex.Matches(responseBody, @"accessGroup id=""(\d+)""", RegexOptions.IgnoreCase);
             return matchCollection[0].Groups[1].Value;
+        }
+
+        private void AddMandatoryHeaders(HttpWebRequest request, string dateStr, string apiPath, string httpVerb, string contentType = "text/xml")
+        {
+            var mi = request.Headers.GetType().GetMethod("AddWithoutValidate", BindingFlags.Instance | BindingFlags.NonPublic);
+            mi.Invoke(request.Headers, new object[] { "Host", ApiServer });
+            mi.Invoke(request.Headers, new object[] { "Authorization", GetAuthHeaderValue(dateStr, apiPath, httpVerb, contentType) });
+            mi.Invoke(request.Headers, new object[] { "Date", dateStr });
+            mi.Invoke(request.Headers, new object[] { "Content-Type", contentType });
         }
 
         private HttpWebRequest CreateRequest(string apiPath)
@@ -232,7 +233,7 @@ namespace API_Sample
             return DateTime.UtcNow.ToString("ddd, d MMM yyyy HH:mm:ss") + " GMT";
         }
 
-        private string GetAuthHeaderValue(string dateStr, string apiPath, string method, string contentType = "text/xml", string contentMD5 = "")
+        private string GetAuthHeaderValue(string dateStr, string apiPath, string method, string contentType, string contentMD5 = "")
         {
             var signatureString = dateStr + "\n" + apiPath + "\n" + contentType + "\n" + method + "\n" + contentMD5;
             // generate hash
