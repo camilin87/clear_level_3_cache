@@ -196,27 +196,16 @@ namespace API_Sample
         {
             var apiPath = "/key/v1.0";
             var request = CreateRequest(apiPath);
-
-            // One of multiple supported date formats: Tue, 20 Jul 2010 08:49:37 GMT
-            string date = DateTime.UtcNow.ToString("ddd, d MMM yyyy HH:mm:ss") + " GMT";
-            string contentType = "text/xml";
-            string method = "GET";
-            string contentMD5 = "";
-
-            // String that will be converted into a signature.
-            string signatureString = date + "\n" + apiPath + "\n" + contentType + "\n" + method + "\n" + contentMD5;
-            // generate hash
-            HMACSHA1 hmacsha1 = new HMACSHA1(Encoding.ASCII.GetBytes(apiSecret));
-            byte[] hashValue = hmacsha1.ComputeHash(Encoding.ASCII.GetBytes(signatureString));
-            String b64Mac = Convert.ToBase64String(hashValue);
-            //for Authorization header
-            string auth = "MPA " + apiKey + ":" + b64Mac;
+            
+            var dateStr = GetDateStr();
+            var contentType = "text/xml";
+            var auth = GetAuthHeaderValue(dateStr, apiPath, "GET");
 
             Type type = request.Headers.GetType();
             MethodInfo mi = type.GetMethod("AddWithoutValidate", BindingFlags.Instance | BindingFlags.NonPublic);
             mi.Invoke(request.Headers, new object[] { "Host", "ws.level3.com" });
             mi.Invoke(request.Headers, new object[] { "Authorization", auth });
-            mi.Invoke(request.Headers, new object[] { "Date", date });
+            mi.Invoke(request.Headers, new object[] { "Date", dateStr });
             mi.Invoke(request.Headers, new object[] { "Content-Type", contentType });
 
             var response = (HttpWebResponse)request.GetResponse();
@@ -236,6 +225,22 @@ namespace API_Sample
             request.Timeout = Timeout;
 
             return request;
+        }
+
+        private string GetDateStr()
+        {
+            return DateTime.UtcNow.ToString("ddd, d MMM yyyy HH:mm:ss") + " GMT";
+        }
+
+        private string GetAuthHeaderValue(string dateStr, string apiPath, string method, string contentType = "text/xml", string contentMD5 = "")
+        {
+            var signatureString = dateStr + "\n" + apiPath + "\n" + contentType + "\n" + method + "\n" + contentMD5;
+            // generate hash
+            var hashValue = new HMACSHA1(Encoding.ASCII.GetBytes(apiSecret))
+                .ComputeHash(Encoding.ASCII.GetBytes(signatureString));
+            var b64Mac = Convert.ToBase64String(hashValue);
+            //for Authorization header
+            return "MPA " + apiKey + ":" + b64Mac;
         }
 
         private bool InvalidateProperties(IEnumerable<string> urls)
