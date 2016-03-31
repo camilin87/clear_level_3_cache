@@ -18,7 +18,7 @@ namespace API_Sample
             Console.WriteLine("Executing API Test");
 
             new CacheInvalidator(new ConsoleLogger(), "288519499", "9TJtJkxW66jXGQS2zS4s", "csanchez@ipcoop.com")
-                 .InvalidateCache("sadminmsc.ipcoop.com", "stg.mysubwaycareer.com");
+                 .InvalidateCache(new[] { "sadminmsc.ipcoop.com", "stg.mysubwaycareer.com" });
 
             Console.Write("Press any key to continue . . . ");
             Console.ReadKey(true);
@@ -58,7 +58,7 @@ namespace API_Sample
             this.notificationEmail = notificationEmail;
         }
 
-        public void InvalidateCache(params string[] websiteUrls)
+        public void InvalidateCache(string[] websiteUrls)
         {
             logger.Log(string.Format("InvalidateCache Key={0}, Secret={1}, Notification={2}", apiKey, apiSecret, notificationEmail));
 
