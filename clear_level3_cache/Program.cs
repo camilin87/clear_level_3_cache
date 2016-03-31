@@ -144,4 +144,56 @@ namespace API_Sample
             yield return "</properties>";
         }
     }
+
+    public interface ILogger
+    {
+        void Log(string message);
+    }
+
+    public class ConsoleLogger : ILogger
+    {
+        public void Log(string message)
+        {
+            Console.WriteLine(message);
+        }
+    }
+
+    public class CacheInvalidator
+    {
+        private readonly ILogger logger;
+        private readonly string apiKey;
+        private readonly string apiSecret;
+        private readonly string notificationEmail;
+
+        public CacheInvalidator(ILogger logger, string apiKey, string apiSecret, string notificationEmail)
+        {
+            this.logger = logger;
+            this.apiKey = apiKey;
+            this.apiSecret = apiSecret;
+            this.notificationEmail = notificationEmail;
+        }
+
+        public void InvalidateCache()
+        {
+            logger.Log($"InvalidateCache Key={apiKey}, Secret={apiSecret}, Notification={notificationEmail}");
+
+            var groupId = GetAccessGroupId();
+            logger.Log($"AccessGroupId={groupId}");
+            if (string.IsNullOrEmpty(groupId)) throw new InvalidOperationException("Error Getting GroupId");
+
+            var invalidationResult = InvalidateProperties();
+            logger.Log($"InvalidationResult={invalidationResult}");
+            if (!invalidationResult) throw new InvalidOperationException("Invalidation Failed");
+        }
+
+        private string GetAccessGroupId()
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool InvalidateProperties()
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
