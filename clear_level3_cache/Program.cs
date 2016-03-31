@@ -168,7 +168,8 @@ namespace API_Sample
         private readonly string apiSecret;
         private readonly string notificationEmail;
 
-        readonly string SourceUri = "https://ws.level3.com";
+        private readonly string SourceUri = "https://ws.level3.com";
+        private readonly int Timeout = 60 * 1000;
 
         public CacheInvalidator(ILogger logger, string apiKey, string apiSecret, string notificationEmail)
         {
@@ -193,22 +194,17 @@ namespace API_Sample
 
         private string GetAccessGroupId()
         {
-            string ApiPath = "/key/v1.0";
-            string Parameters = ""; //parameters if applicable, e.g. ?verbose=true,foo=false
-            string FullHttpRequestUri = SourceUri + ApiPath + Parameters;
-
-            var request = (HttpWebRequest)WebRequest.Create(FullHttpRequestUri);
-            request.Timeout = 60 * 1000;
+            var apiPath = "/key/v1.0";
+            var request = CreateRequest(apiPath);
 
             // One of multiple supported date formats: Tue, 20 Jul 2010 08:49:37 GMT
-            string datealt = DateTime.UtcNow.ToString("r");
             string date = DateTime.UtcNow.ToString("ddd, d MMM yyyy HH:mm:ss") + " GMT";
             string contentType = "text/xml";
             string method = "GET";
             string contentMD5 = "";
 
             // String that will be converted into a signature.
-            string signatureString = date + "\n" + ApiPath + "\n" + contentType + "\n" + method + "\n" + contentMD5;
+            string signatureString = date + "\n" + apiPath + "\n" + contentType + "\n" + method + "\n" + contentMD5;
             // generate hash
             HMACSHA1 hmacsha1 = new HMACSHA1(Encoding.ASCII.GetBytes(apiSecret));
             byte[] hashValue = hmacsha1.ComputeHash(Encoding.ASCII.GetBytes(signatureString));
@@ -229,6 +225,17 @@ namespace API_Sample
 
             var matchCollection = Regex.Matches(responseBody, @"accessGroup id=""(\d+)""", RegexOptions.IgnoreCase);
             return matchCollection[0].Groups[1].Value;
+        }
+
+        private HttpWebRequest CreateRequest(string apiPath)
+        {
+            var Parameters = ""; //parameters if applicable, e.g. ?verbose=true,foo=false
+            var fullHttpRequestUri = SourceUri + apiPath + Parameters;
+
+            var request = (HttpWebRequest)WebRequest.Create(fullHttpRequestUri);
+            request.Timeout = Timeout;
+
+            return request;
         }
 
         private bool InvalidateProperties(IEnumerable<string> urls)
