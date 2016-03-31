@@ -188,7 +188,7 @@ namespace API_Sample
             logger.Log($"AccessGroupId={groupId}");
             if (string.IsNullOrEmpty(groupId)) throw new InvalidOperationException("Error Getting GroupId");
 
-            var invalidationResult = InvalidateProperties(websiteUrls);
+            var invalidationResult = InvalidateProperties(groupId, websiteUrls);
             logger.Log($"InvalidationResult={invalidationResult}");
             if (!invalidationResult) throw new InvalidOperationException("Invalidation Failed");
         }
@@ -208,6 +208,42 @@ namespace API_Sample
             return matchCollection[0].Groups[1].Value;
         }
 
+        private bool InvalidateProperties(string groupId, string[] urls)
+        {
+            foreach (var url in urls)
+            {
+                logger.Log($"Invalidating Url={url}");
+            }
+
+            var apiPath = "/invalidations/v1.0/" + groupId;
+            var request = CreateRequest(apiPath, "POST");
+            var dateStr = GetDateStr();
+            AddMandatoryHeaders(request, dateStr, apiPath, "POST");
+            WriteRequestBody(request, BuildBodyData(urls));
+
+            var response = (HttpWebResponse)request.GetResponse();
+            return response.StatusCode == HttpStatusCode.OK;
+        }
+
+        private void WriteRequestBody(HttpWebRequest request, string body)
+        {
+            var bodyDataEncoded = new ASCIIEncoding().GetBytes(body);
+            request.ContentLength = bodyDataEncoded.Length;
+            request.GetRequestStream().Write(bodyDataEncoded, 0, bodyDataEncoded.Length);
+        }
+
+        private static string BuildBodyData(IEnumerable<string> urls)
+        {
+            return string.Join(string.Empty, BuildBodyDataInternal(urls));
+        }
+        private static IEnumerable<string> BuildBodyDataInternal(IEnumerable<string> urls)
+        {
+            yield return "<properties>";
+            var allProperties = urls.Select(u => $"<property><name>{u}</name><paths><path>/*</path></paths></property>");
+            yield return string.Join(string.Empty, allProperties);
+            yield return "</properties>";
+        }
+
         private void AddMandatoryHeaders(HttpWebRequest request, string dateStr, string apiPath, string httpVerb, string contentType = "text/xml")
         {
             var mi = request.Headers.GetType().GetMethod("AddWithoutValidate", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -217,13 +253,14 @@ namespace API_Sample
             mi.Invoke(request.Headers, new object[] { "Content-Type", contentType });
         }
 
-        private HttpWebRequest CreateRequest(string apiPath)
+        private HttpWebRequest CreateRequest(string apiPath, string method = "GET")
         {
             var Parameters = ""; //parameters if applicable, e.g. ?verbose=true,foo=false
             var fullHttpRequestUri = SourceUri + apiPath + Parameters;
 
             var request = (HttpWebRequest)WebRequest.Create(fullHttpRequestUri);
             request.Timeout = Timeout;
+            request.Method = method;
 
             return request;
         }
@@ -242,12 +279,6 @@ namespace API_Sample
             var b64Mac = Convert.ToBase64String(hashValue);
             //for Authorization header
             return "MPA " + apiKey + ":" + b64Mac;
-        }
-
-        private bool InvalidateProperties(IEnumerable<string> urls)
-        {
-//            throw new NotImplementedException();
-            return true;
         }
     }
 }
