@@ -188,6 +188,11 @@ namespace API_Sample
             logger.Log($"AccessGroupId={groupId}");
             if (string.IsNullOrEmpty(groupId)) throw new InvalidOperationException("Error Getting GroupId");
 
+            foreach (var url in websiteUrls)
+            {
+                logger.Log($"Invalidating Url={url}");
+            }
+
             var invalidationResult = InvalidateProperties(groupId, websiteUrls);
             logger.Log($"InvalidationResult={invalidationResult}");
             if (!invalidationResult) throw new InvalidOperationException("Invalidation Failed");
@@ -208,13 +213,8 @@ namespace API_Sample
             return matchCollection[0].Groups[1].Value;
         }
 
-        private bool InvalidateProperties(string groupId, string[] urls)
+        private bool InvalidateProperties(string groupId, IEnumerable<string> urls)
         {
-            foreach (var url in urls)
-            {
-                logger.Log($"Invalidating Url={url}");
-            }
-
             var apiPath = "/invalidations/v1.0/" + groupId;
             var request = CreateRequest(apiPath, "POST");
             var dateStr = GetDateStr();
