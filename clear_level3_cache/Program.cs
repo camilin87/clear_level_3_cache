@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -27,12 +25,8 @@ namespace API_Sample
         }
     }
 
-    public interface ILogger
-    {
-        void Log(string message);
-    }
 
-    public class ConsoleLogger : ILogger
+    public class ConsoleLogger : CacheInvalidator.ILogger
     {
         public void Log(string message)
         {
@@ -42,14 +36,19 @@ namespace API_Sample
 
     public class CacheInvalidator
     {
+        public interface ILogger
+        {
+            void Log(string message);
+        }
+
         private readonly ILogger logger;
         private readonly string apiKey;
         private readonly string apiSecret;
         private readonly string notificationEmail;
 
-        private const string ApiServer = "ws.level3.com";
-        private readonly string SourceUri = $"https://{ApiServer}";
-        private const int Timeout = 60 * 1000;
+        private const string API_SERVER = "ws.level3.com";
+        private readonly string sourceUri = $"https://{API_SERVER}";
+        private const int TIMEOUT = 60 * 1000;
 
         public CacheInvalidator(ILogger logger, string apiKey, string apiSecret, string notificationEmail)
         {
@@ -126,7 +125,7 @@ namespace API_Sample
         private void AddMandatoryHeaders(HttpWebRequest request, string dateStr, string apiPath, string httpVerb, string contentType = "text/xml")
         {
             var mi = request.Headers.GetType().GetMethod("AddWithoutValidate", BindingFlags.Instance | BindingFlags.NonPublic);
-            mi.Invoke(request.Headers, new object[] { "Host", ApiServer });
+            mi.Invoke(request.Headers, new object[] { "Host", API_SERVER });
             mi.Invoke(request.Headers, new object[] { "Authorization", GetAuthHeaderValue(dateStr, apiPath, httpVerb, contentType) });
             mi.Invoke(request.Headers, new object[] { "Date", dateStr });
             mi.Invoke(request.Headers, new object[] { "Content-Type", contentType });
@@ -134,11 +133,11 @@ namespace API_Sample
 
         private HttpWebRequest CreateRequest(string apiPath, string method = "GET")
         {
-            var Parameters = ""; //parameters if applicable, e.g. ?verbose=true,foo=false
-            var fullHttpRequestUri = SourceUri + apiPath + Parameters;
+            var parameters = $"?notification={notificationEmail}";
+            var fullHttpRequestUri = sourceUri + apiPath + parameters;
 
             var request = (HttpWebRequest)WebRequest.Create(fullHttpRequestUri);
-            request.Timeout = Timeout;
+            request.Timeout = TIMEOUT;
             request.Method = method;
 
             return request;
