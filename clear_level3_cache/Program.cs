@@ -17,8 +17,11 @@ namespace API_Sample
         {
             Console.WriteLine("Executing API Test");
 
+            var urlsSeparatedByComma = "sadminmsc.ipcoop.com,stg.mysubwaycareer.com";
+            var urls = urlsSeparatedByComma.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+
             new CacheInvalidator(new ConsoleLogger(), "288519499", "9TJtJkxW66jXGQS2zS4s", "csanchez@ipcoop.com")
-                 .InvalidateCache(new[] { "sadminmsc.ipcoop.com", "stg.mysubwaycareer.com" });
+                 .InvalidateCache(urls);
 
             Console.Write("Press any key to continue . . . ");
             Console.ReadKey(true);
