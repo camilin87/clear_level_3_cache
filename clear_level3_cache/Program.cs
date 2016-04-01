@@ -1,5 +1,4 @@
 ﻿using System;
-using Level3Utils;
 
 namespace clear_level3_cache
 {
@@ -8,9 +7,9 @@ namespace clear_level3_cache
         public static void Main(string[] args)
         {
 //            var inputReader = new HardCodedInput();
-//            var inputReader = new Level3Utils.OctopusInput();
-            var inputReader = new Level3Utils.ArgumentsInput(args);
-            new Level3Utils.CacheInvalidatorProgram(inputReader).Execute();
+//            var inputReader = new OctopusInput();
+            var inputReader = new ArgumentsInput(args);
+            new CacheInvalidatorProgram(inputReader).Execute();
 
             Console.ReadKey(true);
         }

@@ -4,10 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Level3Utils
+static class Octopus
 {
-    static class Octopus
-    {
-        public static readonly Dictionary<string, string> Parameters = new Dictionary<string, string>(); 
-    }
+    public static readonly Dictionary<string, string> Parameters = new Dictionary<string, string>();
 }
