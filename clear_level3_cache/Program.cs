@@ -14,17 +14,9 @@ namespace clear_level3_cache
     {
         public static void Main(string[] args)
         {
-            new CacheInvalidatorProgram(new HardCodedInput(), new ConsoleLogger()).Execute();
+            new CacheInvalidatorProgram(new ArgumentsInput(args), new ConsoleLogger()).Execute();
 
             Console.ReadKey(true);
-        }
-    }
-
-    public class ConsoleLogger : ILogger
-    {
-        public void Log(string message)
-        {
-            Console.WriteLine(message);
         }
     }
 
@@ -39,6 +31,35 @@ namespace clear_level3_cache
                 UrlsSeparatedByComma = "sadminmsc.ipcoop.com,stg.mysubwaycareer.com",
                 NotificationEmail = "csanchez@ipcoop.com"
             };
+        }
+    }
+
+    public class ArgumentsInput : CacheInvalidatorProgram.IInputReader
+    {
+        private readonly string[] args;
+
+        public ArgumentsInput(string[] args)
+        {
+            this.args = args;
+        }
+
+        public CacheInvalidatorProgram.Input Read()
+        {
+            return new CacheInvalidatorProgram.Input
+            {
+                ApiKey = args[0],
+                ApiSecret = args[1],
+                UrlsSeparatedByComma = args[2],
+                NotificationEmail = args[3]
+            };
+        }
+    }
+
+    public class ConsoleLogger : ILogger
+    {
+        public void Log(string message)
+        {
+            Console.WriteLine(message);
         }
     }
 
