@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace clear_level3_cache
+namespace Level3Utils
 {
     static class Octopus
     {

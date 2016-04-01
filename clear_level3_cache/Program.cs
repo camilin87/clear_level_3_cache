@@ -1,12 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace clear_level3_cache
 {
@@ -14,11 +6,23 @@ namespace clear_level3_cache
     {
         public static void Main(string[] args)
         {
-            new CacheInvalidatorProgram(new ArgumentsInput(args), new ConsoleLogger()).Execute();
+            new Level3Utils.CacheInvalidatorProgram(new Level3Utils.ArgumentsInput(args)).Execute();
 
             Console.ReadKey(true);
         }
     }
+}
+
+namespace Level3Utils
+{
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+    using System.Reflection;
+    using System.Security.Cryptography;
+    using System.Text;
+    using System.Text.RegularExpressions;
 
     public class HardCodedInput : CacheInvalidatorProgram.IInputReader
     {
@@ -33,7 +37,6 @@ namespace clear_level3_cache
             };
         }
     }
-
     public class ArgumentsInput : CacheInvalidatorProgram.IInputReader
     {
         private readonly string[] args;
@@ -54,7 +57,6 @@ namespace clear_level3_cache
             };
         }
     }
-
     public class OctopusInput : CacheInvalidatorProgram.IInputReader
     {
         public CacheInvalidatorProgram.Input Read()
@@ -69,7 +71,6 @@ namespace clear_level3_cache
         }
     }
 
-
     public class ConsoleLogger : ILogger
     {
         public void Log(string message)
@@ -77,7 +78,6 @@ namespace clear_level3_cache
             Console.WriteLine(message);
         }
     }
-
 
     public class CacheInvalidatorProgram
     {
@@ -97,6 +97,10 @@ namespace clear_level3_cache
             Input Read();
         }
 
+        public CacheInvalidatorProgram(IInputReader inputReader) : this(inputReader, new ConsoleLogger())
+        {
+            
+        }
         public CacheInvalidatorProgram(IInputReader inputReader, ILogger logger)
         {
             this.inputReader = inputReader;
@@ -108,7 +112,7 @@ namespace clear_level3_cache
             var input = inputReader.Read();
 
             logger.Log("Cache Invalidation Started");
-            
+
             var urls = input.UrlsSeparatedByComma.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             new CacheInvalidator(logger, input.ApiKey, input.ApiSecret, input.NotificationEmail)
@@ -122,7 +126,7 @@ namespace clear_level3_cache
     {
         void Log(string message);
     }
-    
+
     public class CacheInvalidator
     {
 
