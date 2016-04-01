@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,27 +8,19 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace API_Sample
+namespace clear_level3_cache
 {
     class Program
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("Executing API Test");
+            new CacheInvalidatorProgram(new HardCodedInput(), new ConsoleLogger()).Execute();
 
-            var urlsSeparatedByComma = "sadminmsc.ipcoop.com,stg.mysubwaycareer.com";
-            var urls = urlsSeparatedByComma.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
-
-            new CacheInvalidator(new ConsoleLogger(), "288519499", "9TJtJkxW66jXGQS2zS4s", "csanchez@ipcoop.com")
-                 .InvalidateCache(urls);
-
-            Console.Write("Press any key to continue . . . ");
             Console.ReadKey(true);
         }
     }
 
-
-    public class ConsoleLogger : CacheInvalidator.ILogger
+    public class ConsoleLogger : ILogger
     {
         public void Log(string message)
         {
@@ -37,12 +28,67 @@ namespace API_Sample
         }
     }
 
+    public class HardCodedInput : CacheInvalidatorProgram.IInputReader
+    {
+        public CacheInvalidatorProgram.Input Read()
+        {
+            return new CacheInvalidatorProgram.Input
+            {
+                ApiKey = "288519499",
+                ApiSecret = "9TJtJkxW66jXGQS2zS4s",
+                UrlsSeparatedByComma = "sadminmsc.ipcoop.com,stg.mysubwaycareer.com",
+                NotificationEmail = "csanchez@ipcoop.com"
+            };
+        }
+    }
+
+
+    public class CacheInvalidatorProgram
+    {
+        private readonly IInputReader inputReader;
+        private readonly ILogger logger;
+
+        public struct Input
+        {
+            public string ApiKey { get; set; }
+            public string UrlsSeparatedByComma { get; set; }
+            public string ApiSecret { get; set; }
+            public string NotificationEmail { get; set; }
+        }
+
+        public interface IInputReader
+        {
+            Input Read();
+        }
+
+        public CacheInvalidatorProgram(IInputReader inputReader, ILogger logger)
+        {
+            this.inputReader = inputReader;
+            this.logger = logger;
+        }
+
+        public void Execute()
+        {
+            var input = inputReader.Read();
+
+            logger.Log("Cache Invalidation Started");
+            
+            var urls = input.UrlsSeparatedByComma.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            new CacheInvalidator(logger, input.ApiKey, input.ApiSecret, input.NotificationEmail)
+                 .InvalidateCache(urls);
+
+            logger.Log("Cache Invalidation Submission Completed");
+        }
+    }
+
+    public interface ILogger
+    {
+        void Log(string message);
+    }
+    
     public class CacheInvalidator
     {
-        public interface ILogger
-        {
-            void Log(string message);
-        }
 
         private readonly ILogger logger;
         private readonly string apiKey;
