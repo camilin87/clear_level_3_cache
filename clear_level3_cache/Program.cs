@@ -55,6 +55,20 @@ namespace clear_level3_cache
         }
     }
 
+    public class OctopusInput : CacheInvalidatorProgram.IInputReader
+    {
+        public CacheInvalidatorProgram.Input Read()
+        {
+            return new CacheInvalidatorProgram.Input
+            {
+                ApiKey = Octopus.Parameters["level3_api_key"],
+                ApiSecret = Octopus.Parameters["level3_api_secret"],
+                UrlsSeparatedByComma = Octopus.Parameters["level3_invalidation_urls"],
+                NotificationEmail = Octopus.Parameters["level3_notification_email"]
+            };
+        }
+    }
+
     public class ConsoleLogger : ILogger
     {
         public void Log(string message)
