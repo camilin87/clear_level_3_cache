@@ -69,6 +69,7 @@ namespace clear_level3_cache
         }
     }
 
+
     public class ConsoleLogger : ILogger
     {
         public void Log(string message)
