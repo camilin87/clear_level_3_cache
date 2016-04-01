@@ -20,10 +20,10 @@ namespace clear_level3_cache
             {
                 return new CacheInvalidatorProgram.Input
                 {
-                    ApiKey = "288519499",
-                    ApiSecret = "9TJtJkxW66jXGQS2zS4s",
-                    UrlsSeparatedByComma = "sadminmsc.ipcoop.com,stg.mysubwaycareer.com",
-                    NotificationEmail = "csanchez@ipcoop.com"
+                    ApiKey = "YOUR_API_KEY",
+                    ApiSecret = "YOUR_API_SECRET",
+                    UrlsSeparatedByComma = "subdomain1.mydomain.com,subdomain2.mydomain.com,subdomain3.mydomain.com",
+                    NotificationEmail = "youremail@yourcompany.com"
                 };
             }
         }
